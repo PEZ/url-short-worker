@@ -28,8 +28,8 @@
                   short-url (str (.-origin url) "/" short-code)
                   _ (js/console.log "Returning short URL:" short-url)]
             (js/Response. (js/JSON.stringify #js {:shortUrl short-url})
-                         #js {:status 200
-                              :headers #js {"Content-Type" "application/json"}}))
+                          #js {:status 200
+                               :headers #js {"Content-Type" "application/json"}}))
           (js/Response. "Invalid URL" #js {:status 400})))
 
       (and (= method "GET") (str/starts-with? pathname "/") (not= pathname "/"))
@@ -43,12 +43,12 @@
 
       :else
       (p/resolved (js/Response. "Hello World Workers, Unite!"
-                               #js {:status 200
-                                    :headers #js {"Content-Type" "text/plain"}})))))
+                                #js {:status 200
+                                     :headers #js {"Content-Type" "text/plain"}})))))
 
 (def ^:export handler
   #js {:fetch (fn [req env ctx]
                 (p/catch
-                  (handle-request req env ctx)
-                  #(js/Response. (str "Error processing request: " %)
+                 (handle-request req env ctx)
+                 #(js/Response. (str "Error processing request: " %)
                                 #js {:status 500})))})
