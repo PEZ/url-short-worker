@@ -1,0 +1,18 @@
+{
+  "name": "url-short",
+  "main": "dist/main.js",
+  "compatibility_date": "2025-02-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SHORT_URLS",
+      "id": "db7888244e4840bb9278974ed326c58d",
+      "preview_id": "30e7964091cc4049aa10948f6ba1f2c4y"
+    }
+  ],
+  "workers_dev": true
+}

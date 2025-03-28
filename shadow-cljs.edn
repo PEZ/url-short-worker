@@ -1,0 +1,8 @@
+{:deps true
+ :builds
+ {:worker
+  {:target :esm
+   :output-dir "dist"
+   :modules {:main {:exports {default pez.url-short/handler}}}
+   :devtools {:enabled false}
+   :release {:optimizations :advanced}}}}

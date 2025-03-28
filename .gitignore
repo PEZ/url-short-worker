@@ -1,0 +1,6 @@
+.shadow-cljs/
+node_modules/
+.cpcache/
+.shadow-cljs/
+.wrangler/
+dist/
