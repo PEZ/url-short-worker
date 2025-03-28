@@ -8,13 +8,14 @@
 (defn- shorten-url [url ^js env]
   (p/catch
    (p/let [short-code (generate-code)
-           _ (js/console.log "Attempting to put:" short-code "->" url)
-           _result+ (.put (.-SHORT_URLS env) short-code url #js {:expirationTtl 2592000})
-           _ (js/console.log "Put succeeded:" short-code "->" url)]
+           timestamp (js/Date.now)
+           ^js stmt (.prepare (.-DB env) "INSERT INTO urls (short_code, long_url, created_at) VALUES (?, ?, ?)")
+           ^js result (.bind stmt short-code url timestamp)
+           _ (.run result)]
      short-code)
-   #(js/console.error "Error putting to KV:" %)))
+   #(js/console.error "Error inserting to D1:" %)))
 
-(defn- handle-request [request ^js env ctx]
+(defn- handle-request [request ^js env _ctx]
   (let [url (js/URL. (.-url request))
         pathname (.-pathname url)
         method (.-method request)]
@@ -25,26 +26,24 @@
               long-url (.get params "url")]
         (if (and long-url (re-matches #"https?://.+" long-url))
           (p/let [short-code (shorten-url long-url env)
-                  short-url (str (.-origin url) "/" short-code)
-                  _ (js/console.log "Returning short URL:" short-url)]
+                  short-url (str (.-origin url) "/" short-code)]
             (js/Response. (js/JSON.stringify #js {:shortUrl short-url})
-                          #js {:status 200
-                               :headers #js {"Content-Type" "application/json"}}))
+                          #js {:status 200 :headers #js {"Content-Type" "application/json"}}))
           (js/Response. "Invalid URL" #js {:status 400})))
 
-      (and (= method "GET") (str/starts-with? pathname "/") (not= pathname "/"))
-      (p/let [code (subs pathname 1)
-              _ (js/console.log "Get:" code)
-              result (.get (.-SHORT_URLS env) code)
-              _ (js/console.log "Got:" result)]
-        (if result
-          (js/Response. nil #js {:status 301 :headers #js {"Location" result}})
-          (js/Response. "Not Found" #js {:status 404})))
+      (and (= method "GET") (= pathname "/"))
+      (p/resolved (js/Response. "Hello World Workers, Unite!"
+                                #js {:status 200 :headers #js {"Content-Type" "text/plain"}}))
 
       :else
-      (p/resolved (js/Response. "Hello World Workers, Unite!"
-                                #js {:status 200
-                                     :headers #js {"Content-Type" "text/plain"}})))))
+      (p/let [code (subs pathname 1)
+              ^js stmt (.prepare (.-DB env) "SELECT long_url FROM urls WHERE short_code = ?")
+              ^js result (.bind stmt code)
+              ^js row (.first result)
+              ^js long-url (.-long_url row)]
+        (if long-url
+          (js/Response. nil #js {:status 301 :headers #js {"Location" long-url}})
+          (js/Response. "Not Found" #js {:status 404}))))))
 
 (def ^:export handler
   #js {:fetch (fn [req env ctx]

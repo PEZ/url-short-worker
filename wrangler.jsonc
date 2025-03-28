@@ -14,5 +14,12 @@
       "preview_id": "30e7964091cc4049aa10948f6ba1f2c4y"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "url-short-db",
+      "database_id": "fb4d23c9-2bf0-4f5e-890c-811983b0d3e0"
+    }
+  ],
   "workers_dev": true
 }
